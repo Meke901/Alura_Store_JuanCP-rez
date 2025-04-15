@@ -1,0 +1,87 @@
+# ===================================================
+# 📦 1. IMPORTACIÓN DE LIBRERÍAS
+# ===================================================
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Configuración de estilo para visualizaciones (opcional)
+sns.set(style="whitegrid")
+plt.rcParams['figure.figsize'] = (10, 6)
+
+# ===================================================
+# 📂 2. CARGA DE DATOS
+# ===================================================
+# Reemplaza las rutas si estás trabajando en Colab o localmente
+tienda1 = pd.read_csv('/mnt/data/tienda_1 .csv')
+tienda2 = pd.read_csv('/mnt/data/tienda_2.csv')
+tienda3 = pd.read_csv('/mnt/data/tienda_3.csv')
+tienda4 = pd.read_csv('/mnt/data/tienda_4.csv')
+
+# Añadir columna identificadora de tienda
+tienda1['tienda'] = 'Tienda 1'
+tienda2['tienda'] = 'Tienda 2'
+tienda3['tienda'] = 'Tienda 3'
+tienda4['tienda'] = 'Tienda 4'
+
+# Unir los datasets
+df = pd.concat([tienda1, tienda2, tienda3, tienda4], ignore_index=True)
+
+# ===================================================
+# 🔎 3. ANÁLISIS SOLICITADOS
+# ===================================================
+
+# ===================================================
+# 3.1 💰 FACTURACIÓN TOTAL POR TIENDA
+# ===================================================
+facturacion = df.groupby('tienda')['precio'].sum().sort_values(ascending=False)
+print("💰 Facturación total por tienda:")
+print(facturacion)
+print("\n")
+
+# ===================================================
+# 3.2 🔥 CATEGORÍAS MÁS POPULARES POR TIENDA
+# ===================================================
+categorias_populares = df.groupby(['tienda', 'categoria'])['producto_id'].count().reset_index()
+categorias_populares = categorias_populares.sort_values(['tienda', 'producto_id'], ascending=[True, False])
+
+print("🔥 Categorías más populares por tienda:")
+for tienda in categorias_populares['tienda'].unique():
+    top = categorias_populares[categorias_populares['tienda'] == tienda].head(3)
+    print(f"\n{tienda}:")
+    print(top[['categoria', 'producto_id']])
+print("\n")
+
+# ===================================================
+# 3.3 ⭐ PROMEDIO DE EVALUACIÓN POR CLIENTE
+# ===================================================
+evaluacion_promedio = df.groupby('cliente_id')['evaluacion'].mean().sort_values(ascending=False)
+print("⭐ Promedio de evaluación por cliente (Top 10):")
+print(evaluacion_promedio.head(10))
+print("\n")
+
+# ===================================================
+# 3.4 📈 PRODUCTOS MÁS Y MENOS VENDIDOS POR TIENDA
+# ===================================================
+ventas_productos = df.groupby(['tienda', 'producto_id'])['producto_id'].count().rename('cantidad').reset_index()
+
+print("📈 Productos más vendidos por tienda:")
+for tienda in ventas_productos['tienda'].unique():
+    top = ventas_productos[ventas_productos['tienda'] == tienda].sort_values(by='cantidad', ascending=False).head(1)
+    print(f"{tienda} - Más vendido:")
+    print(top)
+print("\n")
+
+print("📉 Productos menos vendidos por tienda:")
+for tienda in ventas_productos['tienda'].unique():
+    bottom = ventas_productos[ventas_productos['tienda'] == tienda].sort_values(by='cantidad', ascending=True).head(1)
+    print(f"{tienda} - Menos vendido:")
+    print(bottom)
+print("\n")
+
+# ===================================================
+# 3.5 🚚 COSTO PROMEDIO DE ENVÍO POR TIENDA
+# ===================================================
+envio_promedio = df.groupby('tienda')['costo_envio'].mean().sort_values()
+print("🚚 Costo promedio de envío por tienda:")
+print(envio_promedio)
